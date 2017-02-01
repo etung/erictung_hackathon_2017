@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!-- define our angular app and set the controller -->
+<html ng-app="bitcoinCalculator" ng-controller="bitcoinController">
+  <head>
+    <title>Temporal Picker Predictor and Order Orderer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- stylesheets -->
+    <link href="http://netdna.bootstrapcdn.com/bootswatch/3.1.1/yeti/bootstrap.min.css" rel="stylesheet" media="screen">
+    <!-- scripts -->
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min.js"></script>
+    <script src="http://c4b301d7d229.ant.amazon.com:8800/Chart.js"></script>	
+    <script src="http://c4b301d7d229.ant.amazon.com:8800/angular-chart.js"></script>
+
+    <style>
+      .number {font-weight: bold;}
+    </style>
+    <!-- angular module -->
+    <script type="text/javascript">
+       var bitcoinCalculator = angular.module('bitcoinCalculator', []);
+        bitcoinCalculator.controller('bitcoinController', function ($scope, $http, $timeout) {
+          $http.get("http://c4b301d7d229.ant.amazon.com:5000/packlist_creator/api/v1.0/get_order")
+          .success(function(data){
+            //$scope.orderId = parseInt(data["orderId"]);
+            //$scope.asinList = data["asinList"]
+            $scope.orderId = [];
+            $scope.asinList = [];
+            $scope.diffs = [];
+           	$scope.id_base = 1;
+
+
+            function callAtInterval(i) {
+             		var diff_item_2 = {}
+             		diff_item_2["id"] = $scope.id_base
+             		$scope.id_base = $scope.id_base + 1
+		            $http.get("http://6c4008957040.ant.amazon.com:5002/newOrder").success(function(data2){
+	            	diff_item_2["first"] = data2.originalOrder.TimeToPack;
+	            	diff_item_2["second"] = data2.sortedOrder.TimeToPack;
+	            	diff_item_2["diff"] = data2.sortedOrder.TimeToPack - data2.originalOrder.TimeToPack;
+	           			 });
+		            /*
+		            $http.post("http://f45c898a33b3.ant.amazon.com:5000/packerSimulator/packOrder", data).success(function(data3){
+		            	diff_item_2["second"] = data3.TimeToPack
+		       		     });
+
+		       		     */
+		            $scope.diffs.push(diff_item_2);
+				}
+
+			function populateChart () {
+	        	var index_list = []
+	        	var first_list = []
+	        	var second_list = []
+	        	var delta_list = []
+
+	    	    for (var i = 0 ; i < $scope.diffs.length ; i ++ )
+	    	    {
+	    	    	index_list.push(i+1);
+	    	    	first_list.push($scope.diffs[i]["first"]);
+	    	    	second_list.push($scope.diffs[i]["second"]);
+    	    		delta_list.push($scope.diffs[i]["second"] - $scope.diffs[i]["first"]);
+
+	    	    }
+
+	        	var ctx = document.getElementById("myChart");
+	        	var myChart = new Chart(ctx, {
+				    type: 'line',
+				    data: {
+				        labels: index_list,
+				        datasets: [{
+				            label: 'Time to Pack First',
+				            data: first_list,
+				            backgroundColor: [
+				                'rgba(175, 100, 100, 0.1)'
+				            ],
+				            borderColor: [
+				                'rgba(175,100,100,1)'
+				            ],
+				            borderWidth: 1
+				        },
+				        {
+				            label: 'Time to Pack Second',
+				            data: second_list,
+				            backgroundColor: [
+				                'rgba(68, 175, 175, 0.1)'
+				            ],
+				            borderColor: [
+				                'rgba(68,175,175,1)'
+				            ],
+				            borderWidth: 1
+				        }]
+				    },
+				    options: {
+				        scales: {
+				            yAxes: [{
+				                ticks: {
+				                    beginAtZero:true
+				                }
+				            }]
+				        }
+				    }
+				});
+
+	        	var ctx = document.getElementById("deltaChart");
+	        	var myChart = new Chart(ctx, {
+				    type: 'line',
+				    data: {
+				        labels: index_list,
+				        datasets: [{
+				            label: 'List of Deltas',
+				            data: delta_list,
+				            backgroundColor: [
+				                'rgba(175, 100, 100, 0.1)'
+				            ],
+				            borderColor: [
+				                'rgba(175,100,100,1)'
+				            ],
+				            borderWidth: 1
+				        }]
+				    },
+				    options: {
+				    	responsive: true,
+		                hoverMode: 'index',
+				        scales: {
+				            yAxes: [{
+				                ticks: {
+				                    beginAtZero:false
+				                },
+				                type:'logarithmic',
+                                display: true,
+		                        scaleLabel: {
+		                            display: true,
+		                            labelString: 'Value'
+		                        }
+				            }]
+				        }
+				    }
+				});
+
+			}
+
+
+	
+
+            $scope.runSimulation = function() {
+            	var delay_interval = 150
+            	for (var i = 0 ; i < $scope.testruns ; i++ ) {
+
+		            $timeout(function(){ callAtInterval(); },delay=delay_interval);
+		            delay_interval = delay_interval + 300;
+	        	}
+	        	for ( var i = 50 ; i < 40000 ; i = i + 5000) {
+	        		$timeout(function(){ populateChart(); },delay=i);
+	        	}
+	        	$timeout(function(){ populateChart(); },delay=60000);
+	        	$timeout(function(){ populateChart(); },delay=70000);
+	        	$timeout(function(){ populateChart(); },delay=120000);
+
+
+
+            };
+          });
+        });
+
+
+    </script>
+  </head>
+  <body>
+    <div class="jumbotron">
+      <div class="row">
+        <div class="col-sm-12">
+          <h1>Hackathon 2017: Temporal Pick List Order Order Optimizer</h1>
+          <br>
+        </div>
+      </div>
+      <canvas id="myChart" width="100" height="25"></canvas>
+      <canvas id="deltaChart" width="100" height="25"></canvas>
+      
+
+      <button ng-click="runSimulation()">Run Simulation</button>
+      <input type="text" ng-model="testruns">
+
+
+      <div class="row">
+        <div class="col-sm-7">
+          <br><br>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Run Number</th>
+                <th>Unsorted Time</th>
+                <th>Sorted Time</th>
+                <th>Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="asin in asinList">
+              <td>{{asin.category}}</td>
+                  <td>{{asin.category}}</td>
+                 <td>{{asin.asin}}</td>
+              </tr>
+              <tr ng-repeat="diff in diffs">
+            	  <td>{{diff.id}}</td>
+                  <td>{{diff.first}}</td>
+                 <td>{{diff.second}}</td>
+                 <td>{{diff.diff}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
