@@ -29,7 +29,55 @@
             $scope.asinList = [];
             $scope.diffs = [];
            	$scope.id_base = 1;
+    	    $scope.averagediff = 0;
+    	    $scope.averagefirstpack = 0;
+            $scope.averagesecondpack =  0;
 
+
+   	        $scope.makePictureOnServer = function makePictureOnServer () {
+   	        	//$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|file|ftp|blob):|data:image\//);
+   	        	/*
+   	        	var data = {};
+   	        	data["orderId"] = "146547";
+   	        	data["asinList"] = []
+
+   	        	var temp = {}
+   	        	temp["asin"] = "A1"
+   	        	temp["category"] = "Produce"
+
+   	        	data["asinList"].push(temp)
+
+   	        	var temp = {}
+   	        	temp["asin"] = "A2"
+   	        	temp["category"] = "Laundry"
+
+   	        	data["asinList"].push(temp)
+
+   	        	var temp = {}
+   	        	temp["asin"] = "A7"
+   	        	temp["category"] = "Laundry"
+
+   	        	data["asinList"].push(temp)
+
+   	            var temp = {}
+   	        	temp["asin"] = "A6"
+   	        	temp["category"] = "Laundry"
+
+   	        	data["asinList"].push(temp)
+   	        	*/
+            	$http.get("http://6c4008957040.ant.amazon.com:5002/newOrderDemo").success(function(data3){
+
+	            	 $scope.image =  data3
+
+	       		     });
+
+            	$http.get("http://6c4008957040.ant.amazon.com:5002/newOrderDemo").success(function(data3){
+
+	            	 $scope.image1 =  data3
+
+	       		     });
+
+            }
 
             function callAtInterval(i) {
              		var diff_item_2 = {}
@@ -49,6 +97,41 @@
 		            $scope.diffs.push(diff_item_2);
 				}
 
+			$scope.clearOrders = function clearOrders() {
+    	    	$scope.diffs = []
+    	    	$scope.id_base = 1
+    	    	populateChart()
+
+			}
+
+			$scope.calculateAverage = function calculateAverage() {
+	        	var first_list = []
+	        	var second_list = []
+	        	var delta_list = []
+	    	    for (var i = 0 ; i < $scope.diffs.length ; i ++ )
+	    	    {
+	    	    	first_list.push($scope.diffs[i]["first"]);
+	    	    	second_list.push($scope.diffs[i]["second"]);
+    	    		delta_list.push($scope.diffs[i]["second"] - $scope.diffs[i]["first"]);
+
+	    	    }
+	    	    // Haaaaaa-aaaack
+	    	    var delta_sum = 0;
+	    	    var first_sum = 0;
+	    	    var second_sum = 0;
+
+	    	    for ( var i = 0 ; i < delta_list.length ; i++) {
+	    	    	delta_sum = delta_sum + delta_list[i];
+	    	    	first_sum = first_sum + first_list[i];
+	    	    	second_sum = second_sum + second_list[i];
+	    	    }
+	    	    $scope.averagediff = (delta_sum/delta_list.length);
+	    	    $scope.averagefirstpack = (first_sum/delta_list.length);
+	            $scope.averagesecondpack = (second_sum/delta_list.length);
+
+
+			}
+
 			function populateChart () {
 	        	var index_list = []
 	        	var first_list = []
@@ -63,6 +146,7 @@
     	    		delta_list.push($scope.diffs[i]["second"] - $scope.diffs[i]["first"]);
 
 	    	    }
+
 
 	        	var ctx = document.getElementById("myChart");
 	        	var myChart = new Chart(ctx, {
@@ -92,6 +176,7 @@
 				            borderWidth: 1
 				        }]
 				    },
+                    display: true,
 				    options: {
 				        scales: {
 				            yAxes: [{
@@ -121,19 +206,14 @@
 				        }]
 				    },
 				    options: {
-				    	responsive: true,
-		                hoverMode: 'index',
 				        scales: {
 				            yAxes: [{
 				                ticks: {
-				                    beginAtZero:false
+				                    min: -500,
+				                    max: 500
 				                },
-				                type:'logarithmic',
-                                display: true,
-		                        scaleLabel: {
-		                            display: true,
-		                            labelString: 'Value'
-		                        }
+				                type:'linear',
+                                display: true
 				            }]
 				        }
 				    }
@@ -142,8 +222,6 @@
 			}
 
 
-	
-
             $scope.runSimulation = function() {
             	var delay_interval = 150
             	for (var i = 0 ; i < $scope.testruns ; i++ ) {
@@ -151,14 +229,24 @@
 		            $timeout(function(){ callAtInterval(); },delay=delay_interval);
 		            delay_interval = delay_interval + 300;
 	        	}
-	        	for ( var i = 50 ; i < 40000 ; i = i + 5000) {
-	        		$timeout(function(){ populateChart(); },delay=i);
+
+	        	$timeout(function(){ populateChart(); },delay=150);
+
+	        	if ($scope.testruns <= 25 ){
+        			$timeout(function(){ populateChart(); },delay=1000);
+        			$timeout(function(){ populateChart(); },delay=6000);
 	        	}
-	        	$timeout(function(){ populateChart(); },delay=60000);
-	        	$timeout(function(){ populateChart(); },delay=70000);
-	        	$timeout(function(){ populateChart(); },delay=120000);
-
-
+	        	else {
+		        	for ( var i = 50 ; i < 40000 ; i = i + 5000) {
+	        			$timeout(function(){ populateChart(); },delay=i);
+	     		   	}
+	        	}
+	        	if ($scope.testruns > 150) {
+		        	$timeout(function(){ populateChart(); },delay=60000);
+		        	$timeout(function(){ populateChart(); },delay=70000);
+		        	$timeout(function(){ populateChart(); },delay=90000);
+		        	$timeout(function(){ populateChart(); },delay=120000);
+		        }
 
             };
           });
@@ -172,16 +260,23 @@
       <div class="row">
         <div class="col-sm-12">
           <h1>Hackathon 2017: Temporal Pick List Order Order Optimizer</h1>
+          <h2>Three-Eyed Raven</h2>
           <br>
         </div>
       </div>
       <canvas id="myChart" width="100" height="25"></canvas>
       <canvas id="deltaChart" width="100" height="25"></canvas>
-      
-
+      <hr></hr>
       <button ng-click="runSimulation()">Run Simulation</button>
-      <input type="text" ng-model="testruns">
-
+      <input type="text" ng-model="testruns"><br>
+            <hr></hr>
+      <button ng-click="calculateAverage()">Calculate Averages</button>
+      <p></p>
+      <p>Average Time Saved: {{averagediff}} Seconds</p>
+      <p>Average Order Packing Time (Un-Sorted): {{averagefirstpack}} Seconds</p>
+      <p>Average Order Packing Time (Sorted): {{averagesecondpack}} Seconds</p>
+      <hr></hr>
+      <button ng-click="clearOrders()">Clear Orders</button>
 
       <div class="row">
         <div class="col-sm-7">
@@ -210,7 +305,13 @@
             </tbody>
           </table>
         </div>
+
       </div>
+                  <hr></hr>
+        <button ng-click="makePictureOnServer()">Show Demo Picture</button>
+        <img ng-src="data:image/PNG;base64,{{image}}">
+        <img ng-src="data:image/PNG;base64,{{image1}}">
     </div>
+
   </body>
 </html>
