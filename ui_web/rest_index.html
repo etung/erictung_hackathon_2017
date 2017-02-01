@@ -21,8 +21,6 @@
     <script type="text/javascript">
        var bitcoinCalculator = angular.module('bitcoinCalculator', []);
         bitcoinCalculator.controller('bitcoinController', function ($scope, $http, $timeout) {
-          $http.get("http://c4b301d7d229.ant.amazon.com:5000/packlist_creator/api/v1.0/get_order")
-          .success(function(data){
             //$scope.orderId = parseInt(data["orderId"]);
             //$scope.asinList = data["asinList"]
             $scope.orderId = [];
@@ -250,7 +248,6 @@
 
             };
           });
-        });
 
 
     </script>
@@ -260,8 +257,6 @@
       <div class="row">
         <div class="col-sm-12">
           <h1>Hackathon 2017: Temporal Pick List Order Order Optimizer</h1>
-          <h2>Three-Eyed Raven</h2>
-          <br>
         </div>
       </div>
       <canvas id="myChart" width="100" height="25"></canvas>
