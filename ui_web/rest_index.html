@@ -65,15 +65,20 @@
    	        	*/
             	$http.get("http://6c4008957040.ant.amazon.com:5002/newOrderDemo").success(function(data3){
 
-	            	 $scope.image =  data3
+	            	 $scope.originalImage =  data3[0].img
+	            	 $scope.sortedImage =  data3[1].img
+	            	 $scope.imageTime1 = data3[0].time
+	            	 $scope.imageTime2 = data3[1].time
 
 	       		     });
 
+        		/*
             	$http.get("http://6c4008957040.ant.amazon.com:5002/newOrderDemo").success(function(data3){
 
 	            	 $scope.image1 =  data3
 
 	       		     });
+	       		     */
 
             }
 
@@ -257,6 +262,7 @@
       <div class="row">
         <div class="col-sm-12">
           <h1>Hackathon 2017: Temporal Pick List Order Order Optimizer</h1>
+          <h2><i><u>Team Three-Eyed Raven</u></i></h2>
         </div>
       </div>
       <canvas id="myChart" width="100" height="25"></canvas>
@@ -304,8 +310,21 @@
       </div>
                   <hr></hr>
         <button ng-click="makePictureOnServer()">Show Demo Picture</button>
-        <img ng-src="data:image/PNG;base64,{{image}}">
-        <img ng-src="data:image/PNG;base64,{{image1}}">
+        <table class="table table-bordered">
+        	<thead>
+              <tr>
+                <th>UnSorted Map</th>
+                <th>Sorted Map</th>
+              </tr>
+            </thead>
+            <tbody>
+            	<tr>
+            		<td> <img ng-src="data:image/PNG;base64,{{originalImage}}"></td>
+            		<td>
+        <img ng-src="data:image/PNG;base64,{{sortedImage}}">
+        </td>
+            </tbody>
+        </table>
     </div>
 
   </body>
