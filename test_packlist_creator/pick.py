@@ -8,7 +8,7 @@ def getPacklistFromJson (inventory_json, random_items_to_pack = DEFAULT_PACKED_I
 	inventory = MerchantInventory(inventory_json)
 
 	packlist = PackList()
-	for x in xrange(random.randint(3, random_items_to_pack)) :
+	for x in xrange(random.randint(6, random_items_to_pack)) :
 		item = inventory.get_random_item()
 		packlist.pack(item["asin"], item["category"])
 
